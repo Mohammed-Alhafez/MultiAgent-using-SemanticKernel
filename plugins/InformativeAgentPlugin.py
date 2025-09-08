@@ -3,7 +3,7 @@ from semantic_kernel.functions import kernel_function
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
 
-class InformativeAgent:
+class InformativeAgentPlugin:
     def __init__(self):
         # Get Azure Search credentials from environment variables
         self.endpoint = os.getenv("AZURE_SEARCH_ENDPOINT", "https://company-policies-search.search.windows.net")

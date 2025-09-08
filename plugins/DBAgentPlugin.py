@@ -2,7 +2,7 @@ from semantic_kernel.functions import kernel_function
 from db import execute_query
 from typing import Optional
 
-class DBAgent:
+class DBAgentPlugin:
 
     @kernel_function(name="add_task", description="Add a new task to the database.")
     def add_task(self, employee: str, description: str, due_date: Optional[str] = None) -> str:

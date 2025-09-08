@@ -5,7 +5,7 @@ from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 from semantic_kernel.connectors.ai.open_ai.prompt_execution_settings.azure_chat_prompt_execution_settings import AzureChatPromptExecutionSettings
 from semantic_kernel.connectors.ai.function_choice_behavior import FunctionChoiceBehavior
 
-from plugins.InformativeAgentPlugin import InformativeAgent
+from plugins.InformativeAgentPlugin import InformativeAgentPlugin
 
 class InformativeAgent:
     def __init__(self):
@@ -25,7 +25,7 @@ class InformativeAgent:
             )
 
             self.kernel.add_service(self.chat_completion)
-            self.kernel.add_plugin(InformativeAgent(), plugin_name="InformativeAgent")
+            self.kernel.add_plugin(InformativeAgentPlugin(), plugin_name="InformativeAgent")
 
             self.settings = AzureChatPromptExecutionSettings()
             self.settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
