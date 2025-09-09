@@ -6,6 +6,8 @@ from semantic_kernel.connectors.ai.open_ai.prompt_execution_settings.azure_chat_
 from semantic_kernel.connectors.ai.function_choice_behavior import FunctionChoiceBehavior
 
 from plugins.DBAgentPlugin import DBAgentPlugin
+from plugins.MCPPlugin import MCPPlugin
+
 
 class DBAgent(ChatCompletionAgent):
     def __init__(self):
@@ -25,6 +27,7 @@ class DBAgent(ChatCompletionAgent):
 
             # ✅ 3. Add plugin to kernel
             kernel.add_plugin(DBAgentPlugin(), plugin_name="DBAgent")
+            kernel.add_plugin(MCPPlugin(), plugin_name="MCP")
 
             # ✅ 4. Now call the parent constructor with the ready-to-use kernel
             super().__init__(

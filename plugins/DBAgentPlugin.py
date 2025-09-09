@@ -10,7 +10,14 @@ class DBAgentPlugin:
             "INSERT INTO tasks (employee, description, due_date) VALUES (?, ?, ?)",
             (employee, description, due_date)
         )
-        return f"Task added for {employee}: {description}"
+        # Send email via MCP plugin
+        from plugins.MCPPlugin import MCPPlugin
+        mcp = MCPPlugin()
+        subject = f"New Task Assigned: {description}"
+        body = f"A new task has been assigned to {employee}.\n\nDescription: {description}\nDue Date: {due_date or 'N/A'}"
+        result = mcp.send_task_notification("mhd.alhafez9@gmail.com", subject, body)
+
+        return f"Task added for {employee}: {description}\n{result}"
 
     @kernel_function(name="list_pending_tasks", description="List all pending tasks for a person.")
     def list_pending_tasks(self, employee: str) -> str:
@@ -26,7 +33,13 @@ class DBAgentPlugin:
     @kernel_function(name="mark_task_done", description="Mark a task as completed by ID.")
     def mark_task_done(self, id: int) -> str:
         execute_query("UPDATE tasks SET status = 'done' WHERE id = ?", (id,))
-        return f"Task {id} marked as completed."
+        from plugins.MCPPlugin import MCPPlugin
+        mcp = MCPPlugin()
+        subject = f"Task {id} Completed"
+        body = f"The task with ID {id} has been marked as completed."
+        result = mcp.send_task_notification("mhd.alhafez9@gmail.com", subject, body)
+
+        return f"Task {id} marked as completed.\n{result}"
 
     @kernel_function(name="delete_task", description="Delete a task by ID.")
     def delete_task(self, id: int) -> str:
