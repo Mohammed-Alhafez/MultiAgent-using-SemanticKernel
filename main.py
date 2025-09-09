@@ -220,7 +220,7 @@ async def main():
 
         history.add_user_message(user_input)
 
-        agent = orchestrator.route(user_input)
+        agent = await orchestrator.route(user_input)
         result = await agent.run(user_input, history)
 
         print("Assistant >", str(result))
