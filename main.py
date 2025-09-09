@@ -223,8 +223,7 @@ async def main():
         agent = await orchestrator.route(user_input)
         result = await agent.run(user_input, history)
 
-        print("Assistant >", str(result))
-        history.add_message(result)
+        history.add_assistant_message(result)
 
 if __name__ == "__main__":
     asyncio.run(main())

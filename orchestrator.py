@@ -18,7 +18,8 @@ import os
 from semantic_kernel import Kernel
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 from semantic_kernel.connectors.ai.open_ai.prompt_execution_settings.azure_chat_prompt_execution_settings import AzureChatPromptExecutionSettings
-from semantic_kernel.contents.chat_history import ChatHistory
+from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
+from plugins.RoutingPlugin import RoutingPlugin 
 
 class Orchestrator:
     def __init__(self, db_agent, informative_agent):
@@ -36,40 +37,41 @@ class Orchestrator:
             api_key=api_key,
             endpoint=endpoint,
             api_version="2024-12-01-preview",
+            service_id="service1"
         )
         self.kernel.add_service(self.chat_completion)
+        self.kernel.add_plugin(RoutingPlugin(), plugin_name="Router")
 
-        self.settings = AzureChatPromptExecutionSettings()
+        self.settings = AzureChatPromptExecutionSettings(service_id="service1")
+
+        self.router_agent = ChatCompletionAgent(
+            kernel=self.kernel,
+            name="RouterAgent",
+            instructions=(
+                "You are a routing assistant. Given a user's input, decide which agent should handle it:\n"
+                "- Use 'route_to_db' if the input is about tasks, assignments, or todos.\n"
+                "- Use 'route_to_info' if it relates to company policies, guidelines, or rules.\n"
+                "You must only reply with either 'DBAgent' or 'InformativeAgent'. Do not explain or add anything else."
+
+            ),
+        )
 
 
 
     async def route(self, user_input: str):
-        system_prompt = (
-            "You are a routing assistant. Given a user's input, decide which agent should handle it:\n"
-            "- 'DBAgent' if the user input relates to tasks, todos, assignments, completion, or pending items.\n"
-            "- 'InformativeAgent' if it relates to policy, guidelines, rules, or general information.\n"
-            "Respond ONLY with 'DBAgent' or 'InformativeAgent'.\n\n"
-            f"User Input: {user_input}\n"
-            "Which agent should handle this?"
-        )
+        thread = ChatHistoryAgentThread()
 
-        # Use ChatHistory instead of a raw list
-        chat_history = ChatHistory()
-        chat_history.add_system_message(system_prompt)
+        # Stream the response from router agent
+        async for response in self.router_agent.invoke(messages=user_input, thread=thread):
+            message = response.message
+            content = (message.content or "").lower()
 
-        try:
-            result = await self.chat_completion.get_chat_message_content(
-                kernel=self.kernel,
-                chat_history=chat_history,
-                settings=self.settings
-            )
-
-            content = result.content.strip().lower()
-
+            # Simple check: did the agent *say* which agent to route to?
             if "dbagent" in content:
                 return self.db_agent
-            else:
+            elif "informativeagent" in content:
                 return self.informative_agent
-        except Exception as e:
-            print(f"Routing failed, using fallback logic. Error: {e}")
-            return self.informative_agent  # fallback default
+
+        # fallback
+        return self.informative_agent
+
