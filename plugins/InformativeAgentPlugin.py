@@ -5,10 +5,10 @@ from azure.core.credentials import AzureKeyCredential
 
 class InformativeAgentPlugin:
     def __init__(self):
-        # Get Azure Search credentials from environment variables
-        self.endpoint = os.getenv("AZURE_SEARCH_ENDPOINT", "https://company-policies-search.search.windows.net")
-        self.index_name = os.getenv("AZURE_SEARCH_INDEX", "rag-1756823952605")
-        self.api_key = os.getenv("AZURE_SEARCH_API_KEY", "OMUHJTN8j7xvqG69hchBeWIGK3toXS8h1KSQoERR7OAzSeDkiN8t")
+
+        self.endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
+        self.index_name = os.getenv("AZURE_SEARCH_INDEX")
+        self.api_key = os.getenv("AZURE_SEARCH_API_KEY")
 
         try:
             self.search_client = SearchClient(

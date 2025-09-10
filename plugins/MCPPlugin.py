@@ -9,8 +9,8 @@ class MCPPlugin:
     def __init__(self):
         self.smtp_server = "smtp.gmail.com"
         self.smtp_port = 587
-        self.sender_email = ("team.9b79@gmail.com")  # e.g., "yourname@gmail.com"
-        self.app_password = ("mazn robv xhfj jvcl")  # The 16-char App password
+        self.sender_email = os.getenv("SENDER_EMAIL")
+        self.app_password = os.getenv("APP_PASSWORD")  
 
     @kernel_function(name="send_task_notification", description="Send email when a task is created or updated.")
     def send_task_notification(self, recipient_email: str, subject: str, body: str) -> str:

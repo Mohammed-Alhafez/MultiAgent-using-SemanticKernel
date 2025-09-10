@@ -197,11 +197,16 @@
 
 
 import asyncio
+import os
+from dotenv import load_dotenv
 from semantic_kernel.contents.chat_history import ChatHistory
 from db import init_db
 from Agents.DBAgent import DBAgent
 from Agents.informativeAgent import InformativeAgent
 from orchestrator import Orchestrator
+
+# Load environment variables from config.env file
+load_dotenv('config.env')
 
 async def main():
     init_db()

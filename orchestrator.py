@@ -18,7 +18,7 @@ import os
 from semantic_kernel import Kernel
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 from semantic_kernel.connectors.ai.open_ai.prompt_execution_settings.azure_chat_prompt_execution_settings import AzureChatPromptExecutionSettings
-from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
+from semantic_kernel.agents.chat_completion.chat_completion_agent import ChatCompletionAgent, ChatHistoryAgentThread
 from plugins.RoutingPlugin import RoutingPlugin 
 
 class Orchestrator:
@@ -26,10 +26,10 @@ class Orchestrator:
         self.db_agent = db_agent
         self.informative_agent = informative_agent
 
-        # Setup Azure OpenAI for routing
-        api_key = os.getenv("AZURE_OPENAI_API_KEY", "BJ4W6pnGXVOoIBhNFCpiRAMHLQZCjtmSCRPjNzNohtim0pV7ygBiJQQJ99BIACHYHv6XJ3w3AAABACOGOaey")
-        endpoint = os.getenv("AZURE_OPENAI_ENDPOINT", "https://chatcompletionchat.openai.azure.com/")
-        deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4")
+
+        api_key = os.getenv("AZURE_OPENAI_API_KEY")
+        endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+        deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT")
 
         self.kernel = Kernel()
         self.chat_completion = AzureChatCompletion(
@@ -66,7 +66,7 @@ class Orchestrator:
             message = response.message
             content = (message.content or "").lower()
 
-            # Simple check: did the agent *say* which agent to route to?
+            # check: did the agent say which agent to route to?
             if "dbagent" in content:
                 return self.db_agent
             elif "informativeagent" in content:
