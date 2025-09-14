@@ -15,7 +15,7 @@ class DBAgent(ChatCompletionAgent):
             kernel = Kernel()
 
             chat_completion = AzureChatCompletion(
-                deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT"),
+                deployment_name=os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT"),
                 api_key=os.getenv("AZURE_OPENAI_API_KEY"),
                 endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
                 api_version="2024-12-01-preview",

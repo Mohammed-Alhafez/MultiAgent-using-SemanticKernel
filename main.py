@@ -196,39 +196,80 @@
 
 
 
+# import asyncio
+# import os
+# from dotenv import load_dotenv
+# from semantic_kernel.contents.chat_history import ChatHistory
+# from db import init_db
+# from Agents.DBAgent import DBAgent
+# from Agents.informativeAgent import InformativeAgent
+# from orchestrator import Orchestrator
+
+# # Load environment variables from config.env file
+# load_dotenv('config.env')
+
+# async def main():
+#     init_db()
+
+#     db_agent = DBAgent()
+#     informative_agent = InformativeAgent()
+#     orchestrator = Orchestrator(db_agent, informative_agent)
+
+#     history = ChatHistory()
+
+#     while True:
+#         user_input = input("User > ")
+
+#         if user_input.lower() == "exit":
+#             break
+
+#         history.add_user_message(user_input)
+
+#         agent = await orchestrator.route(user_input)
+#         result = await agent.run(user_input, history)
+
+#         history.add_assistant_message(result)
+
+# if __name__ == "__main__":
+#     asyncio.run(main())
+
+from semantic_kernel.agents.runtime import InProcessRuntime
 import asyncio
-import os
-from dotenv import load_dotenv
-from semantic_kernel.contents.chat_history import ChatHistory
-from db import init_db
-from Agents.DBAgent import DBAgent
-from Agents.informativeAgent import InformativeAgent
-from orchestrator import Orchestrator
-
-# Load environment variables from config.env file
-load_dotenv('config.env')
-
+from orchestrator import handoff_orchestration
+from db import init_db, init_chat_history_table
 async def main():
+
+    # Initialize DB tables
     init_db()
+    init_chat_history_table()
 
-    db_agent = DBAgent()
-    informative_agent = InformativeAgent()
-    orchestrator = Orchestrator(db_agent, informative_agent)
+    runtime = InProcessRuntime()
+    runtime.start()
 
-    history = ChatHistory()
-
+    print("Enter your request (type 'exit' to quit):")
     while True:
-        user_input = input("User > ")
-
-        if user_input.lower() == "exit":
+        user_input = input("\nUser > ")
+        
+        # Check for exit command before processing
+        if user_input.lower().strip() == "exit":
+            print("Goodbye! Thank you .")
             break
+        
+        # Skip empty inputs
+        if not user_input.strip():
+            continue
 
-        history.add_user_message(user_input)
+        try:
+            result = await handoff_orchestration.invoke(
+                task=user_input,
+                runtime=runtime,
+            )
 
-        agent = await orchestrator.route(user_input)
-        result = await agent.run(user_input, history)
-
-        history.add_assistant_message(result)
+            final_output = await result.get()
+            print(f"\n[Final Output] {final_output}")
+        except Exception as e:
+            print(f"Error processing request: {e}")
+            continue
 
 if __name__ == "__main__":
     asyncio.run(main())

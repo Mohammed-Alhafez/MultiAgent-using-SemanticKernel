@@ -15,7 +15,7 @@ class InformativeAgent(ChatCompletionAgent):
 
         api_key = os.getenv("AZURE_OPENAI_API_KEY")
         endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-        deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT")
+        deployment_name = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT")
         
         try:
             chat_completion = AzureChatCompletion(

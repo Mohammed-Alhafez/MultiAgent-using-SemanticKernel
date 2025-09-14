@@ -6,18 +6,15 @@ class DBAgentPlugin:
 
     @kernel_function(name="add_task", description="Add a new task to the database.")
     def add_task(self, employee: str, email: str, description: str, due_date: Optional[str] = None) -> str:
+        if not email:
+            return f"Email for {employee} is missing. Please provide an email address to send the task notification."
+        
         execute_query(
             "INSERT INTO tasks (employee, description, due_date) VALUES (?, ?, ?)",
             (employee, description, due_date)
         )
-        # Send email via MCP plugin
-        from plugins.MCPPlugin import MCPPlugin
-        mcp = MCPPlugin()
-        subject = f"New Task Assigned: {description}"
-        body = f"A new task has been assigned to {employee}.\n\nDescription: {description}\nDue Date: {due_date or 'N/A'}"
-        result = mcp.send_task_notification(email, subject, body)
-
-        return f"Task added for {employee}: {description}\n{result}"
+        
+        return f"Task '{description}' has been successfully added for {employee}. Please handoff to MCPAgent to send email notification to {email}."
 
     @kernel_function(name="list_pending_tasks", description="List all pending tasks for a person.")
     def list_pending_tasks(self, employee: str) -> str:
@@ -34,13 +31,13 @@ class DBAgentPlugin:
     def mark_task_done(self, email: str, id: int) -> str:
         execute_query("UPDATE tasks SET status = 'done' WHERE id = ?", (id,))
         # Send email via MCP plugin
-        from plugins.MCPPlugin import MCPPlugin
-        mcp = MCPPlugin()
-        subject = f"Task {id} Completed"
-        body = f"The task with ID {id} has been marked as completed."
-        result = mcp.send_task_notification(email, subject, body)
+        # from plugins.MCPPlugin import MCPPlugin
+        # mcp = MCPPlugin()
+        # subject = f"Task {id} Completed"
+        # body = f"The task with ID {id} has been marked as completed."
+        # result = mcp.send_task_notification(email, subject, body)
 
-        return f"Task {id} marked as completed.\n{result}"
+        return f"Task {id} marked as completed."
 
     @kernel_function(name="delete_task", description="Delete a task by ID.")
     def delete_task(self, id: int) -> str:
