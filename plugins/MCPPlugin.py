@@ -1,33 +1,76 @@
-import smtplib
-from email.mime.text import MIMEText
-from typing import Optional
-from semantic_kernel.functions import kernel_function
-
 import os
+from dotenv import load_dotenv
+from semantic_kernel.connectors.mcp import MCPSsePlugin
+from semantic_kernel.functions import KernelFunctionMetadata
+from semantic_kernel import Kernel
+import asyncio
+load_dotenv("config.env")
 
-class MCPPlugin:
-    def __init__(self):
-        self.smtp_server = "smtp.gmail.com"
-        self.smtp_port = 587
-        self.sender_email = os.getenv("SENDER_EMAIL")
-        self.app_password = os.getenv("APP_PASSWORD")  
+kernel = Kernel()
 
-    @kernel_function(name="send_task_notification", description="Send email when a task is created or updated.")
-    def send_task_notification(self, recipient_email: str, subject: str, body: str) -> str:
-        try:
-            msg = MIMEText(body)
-            msg["Subject"] = subject
-            msg["From"] = self.sender_email
-            msg["To"] = recipient_email
+async def create_email_mcp_plugin():
+    plugin = MCPSsePlugin(
+        name="EmailMCP",
+        description="Email notification plugin",
+        url="http://127.0.0.1:8080/sse",
+        load_tools=True,   
+        load_prompts=False
+    )
 
-            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
-                server.starttls()
-                server.login(self.sender_email, self.app_password)
-                server.send_message(msg)
+    await plugin.connect()
+    await plugin.load_tools()
+    kernel.add_plugin(plugin)
+    
+    def _no_deepcopy(self, memo):
+        return self
+    plugin.__deepcopy__ = _no_deepcopy.__get__(plugin, type(plugin))
 
-            return f"Notification sent to {recipient_email}"
-        except Exception as e:
-            import traceback
-            traceback.print_exc()  # This prints to console
-            return f"Failed to send notification: {str(e)}"
+    
+    # Introspect the plugin directly
+    print("[DEBUG] Plugin functions ready:")
+    for attr in dir(plugin):
+        if not attr.startswith("_"):
+            if callable(getattr(plugin, attr)):
+                print("  -", attr)
+    
+    return plugin
+
+
+
+
+
+# import os
+# import asyncio
+# from dotenv import load_dotenv
+# from semantic_kernel import Kernel
+# from semantic_kernel.connectors.mcp import MCPStdioPlugin
+
+# load_dotenv("config.env")
+
+# async def create_email_mcp_plugin():
+#     # MCPStdio launches your EmailMCP server (the FastMCP you wrote)
+#     plugin = MCPStdioPlugin(
+#         name="EmailMCP",
+#         description="Email notification plugin",
+#         command="python",
+#         args=["MCPServer.py"],  # path to your FastMCP server file
+#         env={
+#             "SENDER_EMAIL": os.getenv("SENDER_EMAIL"),
+#             "APP_PASSWORD": os.getenv("APP_PASSWORD"),
+#         },
+#     )
+#     await plugin.connect()
+    
+#     await plugin.load_tools()
+#     def _no_deepcopy(self, memo):
+#         return self
+#     plugin.__deepcopy__ = _no_deepcopy.__get__(plugin, type(plugin))
+
+#     # Use async context manager for lifecycle management
+#     async with plugin:
+#         kernel = Kernel()
+#         kernel.add_plugin(plugin)
+
+
+#         return plugin
 

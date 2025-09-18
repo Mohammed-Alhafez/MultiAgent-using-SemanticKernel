@@ -2,19 +2,24 @@ from semantic_kernel.agents import ChatCompletionAgent
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 from plugins.DBAgentPlugin import DBAgentPlugin
 from plugins.InformativeAgentPlugin import InformativeAgentPlugin
-from plugins.MCPPlugin import MCPPlugin
+import asyncio
 import os
 from dotenv import load_dotenv
+
+from plugins.MCPPlugin import create_email_mcp_plugin 
+
 load_dotenv("config.env")
 
 # Azure Config
-
 azure_service = AzureChatCompletion(
     deployment_name=os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT"),
     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
     endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
     api_version="2024-12-01-preview",
 )
+
+email_mcp_plugin = asyncio.run(create_email_mcp_plugin())
+#print("[DEBUG] EmailMCP plugin initialized:", email_mcp_plugin.name)
 
 # Triage Agent
 triage_agent = ChatCompletionAgent(
@@ -81,21 +86,19 @@ mcp_agent = ChatCompletionAgent(
     instructions="""
 You are responsible for sending email notifications for task-related updates.
 
-When you receive a handoff from DBAgent, look at the conversation history to understand what task was assigned and to whom. Then send an email notification using your send_task_notification function.
+When you receive a handoff from DBAgent, you MUST call the plugin function `EmailMCP-send_task_notification`.
+Do not invent or call any other functions (such as DBAgent). The only tool you can use is `send_task_notification`.
 
-For task assignments, use:
-- recipient_email: the email address that was provided in the conversation
-- subject: "New Task Assigned: [task description]"
-- body: "You have been assigned a new task: [task description]. Please ensure to complete it timely. Thank you!"
+The required fields are:
+- recipient_email
+- subject
+- body
 
-After sending the notification, confirm the email was sent successfully and then handoff back to TriageAgent by calling 'Handoff-transfer_to_TriageAgent' with no arguments (empty JSON: {}).
-
-If you receive a message that is not about sending a notification, return the user to triage by calling 'Handoff-transfer_to_TriageAgent' with no arguments (empty JSON: {}).
-
-If the user says "exit" or wants to quit, do not respond as the system will handle it.
+After sending the notification, confirm success and then handoff back to TriageAgent.
 
 """,
     service=azure_service,
-    plugins=[MCPPlugin()],
+    plugins=[email_mcp_plugin],
 )
+
 

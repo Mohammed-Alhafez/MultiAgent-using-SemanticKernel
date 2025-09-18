@@ -30,13 +30,6 @@ class DBAgentPlugin:
     @kernel_function(name="mark_task_done", description="Mark a task as completed by ID.")
     def mark_task_done(self, email: str, id: int) -> str:
         execute_query("UPDATE tasks SET status = 'done' WHERE id = ?", (id,))
-        # Send email via MCP plugin
-        # from plugins.MCPPlugin import MCPPlugin
-        # mcp = MCPPlugin()
-        # subject = f"Task {id} Completed"
-        # body = f"The task with ID {id} has been marked as completed."
-        # result = mcp.send_task_notification(email, subject, body)
-
         return f"Task {id} marked as completed."
 
     @kernel_function(name="delete_task", description="Delete a task by ID.")
